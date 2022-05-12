@@ -81,20 +81,20 @@ namespace Ecs
 		};
 	};
 
-	//struct DataChunkHeader {
-	//	//pointer to the signature for this block
-	//	struct ChunkComponentList* componentList;
-	//	struct Archetype* ownerArchetype{ nullptr };
-	//	struct DataChunk* prev{ nullptr };
-	//	struct DataChunk* next{ nullptr };
-	//	//max index that has an entity
-	//	int16_t last{ 0 };
-	//};
-	//struct alignas(32)DataChunk {
-	//	byte storage[BLOCK_MEMORY_16K - sizeof(DataChunkHeader)];
-	//	DataChunkHeader header;
-	//};
-	//static_assert(sizeof(DataChunk) == BLOCK_MEMORY_16K, "chunk size isnt 16kb");
+	//linked list header
+	struct DataChunkHeader {
+		struct ChunkComponentList* componentList; //pointer to the signature for this block
+		struct Archetype* archetype{ nullptr };
+		struct DataChunk* prev{ nullptr };
+		struct DataChunk* next{ nullptr };
+		int16_t last{ 0 }; //max index that has an entity
+	};
+	struct alignas(32)DataChunk 
+	{
+		std::byte storage[BLOCK_MEMORY_16K - sizeof(DataChunkHeader)];
+		DataChunkHeader header;
+	};
+	static_assert(sizeof(DataChunk) == BLOCK_MEMORY_16K, "chunk size isnt 16kb");
 
 
 	template<typename T>

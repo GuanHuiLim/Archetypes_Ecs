@@ -6,6 +6,9 @@
 #include <unordered_map>
 namespace Ecs
 {
+	constexpr size_t BLOCK_MEMORY_16K = 16384;
+	constexpr size_t BLOCK_MEMORY_8K = 8192;
+
 	struct TypeHash;
 	struct ComponentInfo;
 	union  EntityID;
@@ -13,7 +16,7 @@ namespace Ecs
 	struct DataChunk;
 	struct ChunkComponentList;
 	struct Archetype;
-	struct EntityStorage;
+	struct EnityToChunk;
 	struct Query;
 	struct ECSWorld;
 

@@ -145,9 +145,11 @@
     <ClCompile Include="src\A_Ecs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Archetype.h" />
     <ClInclude Include="src\A_Ecs.h" />
     <ClInclude Include="src\Component.h" />
     <ClInclude Include="src\EcsUtils.h" />
+    <ClInclude Include="src\World.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
