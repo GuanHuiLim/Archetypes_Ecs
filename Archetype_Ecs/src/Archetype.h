@@ -3,6 +3,7 @@
 
 namespace Ecs
 {
+	//represents a unique collection of components
 	struct Archetype {
 		ChunkComponentList* componentList;
 		struct ECSWorld* ownerWorld;
@@ -11,7 +12,7 @@ namespace Ecs
 		//full chunks allways on the start of the array
 		std::vector<DataChunk*> chunks;
 	};
-
+	//contains info for mapping which chunk an entity belongs to
 	struct EnityToChunk
 	{
 		DataChunk* chunk;

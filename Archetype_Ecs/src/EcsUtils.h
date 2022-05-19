@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <typeinfo>
-#include <unordered_map>
 namespace Ecs
 {
 	constexpr size_t BLOCK_MEMORY_16K = 16384;
@@ -14,7 +13,7 @@ namespace Ecs
 	union  EntityID;
 	struct DataChunkHeader;
 	struct DataChunk;
-	struct ChunkComponentList;
+	struct ComponentCombination;
 	struct Archetype;
 	struct EnityToChunk;
 	struct Query;
@@ -48,10 +47,11 @@ namespace Ecs
 
 	union EntityID 
 	{
+		using index_type = uint32_t;
 		uint64_t value;
 		struct
 		{
-			uint32_t index;
+			index_type index;
 			uint32_t generation;
 		};
 	};

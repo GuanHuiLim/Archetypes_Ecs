@@ -96,7 +96,18 @@ namespace Ecs
 	};
 	static_assert(sizeof(DataChunk) == BLOCK_MEMORY_16K, "chunk size isnt 16kb");
 
+	//represents a unique combination of components
+	struct ComponentCombination {
+		struct ComponentIdentifier {
+			const ComponentInfo* type;
+			TypeHash hash;
+			uint32_t chunkOffset;
+		};
+		int16_t chunkCapacity;
+		std::vector<ComponentIdentifier> components;
+	};
 
+	//an array for storing components
 	template<typename T>
 	struct ComponentArray 
 	{
