@@ -7,15 +7,17 @@ namespace Ecs
 {
 	constexpr size_t BLOCK_MEMORY_16K = 16384;
 	constexpr size_t BLOCK_MEMORY_8K = 8192;
+	
+	constexpr size_t MAX_COMPONENTS = 32ull;
 
-	struct TypeHash;
-	struct ComponentInfo;
+	struct TypeHash;		//MetatypeHash
+	struct ComponentInfo;	//Metatype
 	union  EntityID;
 	struct DataChunkHeader;
 	struct DataChunk;
-	struct ComponentCombination;
+	struct ComponentCombination; //ChunkComponentList
 	struct Archetype;
-	struct EnityToChunk;
+	struct EnityToChunk;	//EntityStorage
 	struct Query;
 	struct ECSWorld;
 

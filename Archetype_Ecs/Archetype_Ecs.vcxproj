@@ -148,6 +148,7 @@
     <ClInclude Include="src\Archetype.h" />
     <ClInclude Include="src\A_Ecs.h" />
     <ClInclude Include="src\Component.h" />
+    <ClInclude Include="src\EcsCommon.h" />
     <ClInclude Include="src\EcsUtils.h" />
     <ClInclude Include="src\World.h" />
   </ItemGroup>

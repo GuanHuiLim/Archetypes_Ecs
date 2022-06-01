@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include "EcsUtils.h"
+#include "EcsCommon.h"
+#include "Archetype.h"
 
 #include <vector>
 #include <unordered_map>
@@ -67,7 +69,23 @@ namespace Ecs
 		C* get_singleton();
 
 		template<typename ... Comps>
-		inline EntityID new_entity();
+		inline EntityID new_entity()
+		{
+			Archetype* archetype = nullptr;
+			//empty component list will use the hardcoded null archetype
+			if constexpr (sizeof...(Comps) != 0) {
+				static const ComponentInfo* types[] = { Get_ComponentInfo<Comps>()... };
+				constexpr size_t num = (sizeof(types) / sizeof(*types));
+
+				Sort_ComponentInfo(types, num);
+				arch = Find_or_create_archetype(this, types, num);
+			}
+			else {
+				arch = get_empty_archetype();
+			}
+
+			return adv::create_entity_with_archetype(arch);
+		}
 
 		inline void destroy(EntityID eid);
 

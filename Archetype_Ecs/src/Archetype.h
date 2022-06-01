@@ -1,11 +1,13 @@
 ﻿#pragma once
 #include "EcsUtils.h"
 
+#include <assert.h>
+
 namespace Ecs
 {
 	//represents a unique collection of components
 	struct Archetype {
-		ChunkComponentList* componentList;
+		ComponentCombination* componentList;
 		struct ECSWorld* ownerWorld;
 		size_t componentHash;
 		int full_chunks;
@@ -27,4 +29,7 @@ namespace Ecs
 			return !(other == *this);
 		}
 	};
+
+
+	
 }

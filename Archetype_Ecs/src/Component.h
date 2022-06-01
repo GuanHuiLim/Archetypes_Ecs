@@ -1,9 +1,10 @@
 ﻿#pragma once
 #include "EcsUtils.h"
 
+#include <typeinfo>
 namespace Ecs
 {
-	extern std::unordered_map<uint64_t, ComponentInfo> componentInfo_map;
+	extern std::unordered_map<uint64_t, ComponentInfo> componentInfo_map; //metatype_cache
 
 	struct TypeHash
 	{
@@ -26,7 +27,7 @@ namespace Ecs
 			return hash_fnv1a(name_detail<T>());
 		}
 	};
-
+	//struct containing information about a unique component type
 	struct ComponentInfo
 	{
 		using ConstructorFn = void(void*);
@@ -34,7 +35,7 @@ namespace Ecs
 
 		TypeHash hash;
 
-		const char* name{ "none" };
+		const char* name{ "none" }; //name 
 		ConstructorFn* constructor;
 		DestructorFn* destructor;
 		uint16_t size{ 0 };
@@ -57,6 +58,7 @@ namespace Ecs
 
 			ComponentInfo info{};
 			info.hash = build_hash<T>();
+			info.name = typeid(T).name();
 
 			if constexpr (std::is_empty_v<T>)
 			{
@@ -96,7 +98,7 @@ namespace Ecs
 	};
 	static_assert(sizeof(DataChunk) == BLOCK_MEMORY_16K, "chunk size isnt 16kb");
 
-	//represents a unique combination of components
+	//set of unique combination of components
 	struct ComponentCombination {
 		struct ComponentIdentifier {
 			const ComponentInfo* type;
