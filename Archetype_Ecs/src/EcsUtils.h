@@ -10,6 +10,8 @@ namespace Ecs
 	
 	constexpr size_t MAX_COMPONENTS = 32ull;
 
+	using byte = unsigned char;
+
 	struct TypeHash;		//MetatypeHash
 	struct ComponentInfo;	//Metatype
 	union  EntityID;

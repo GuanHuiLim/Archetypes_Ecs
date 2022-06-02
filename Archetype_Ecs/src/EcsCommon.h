@@ -6,8 +6,9 @@
 namespace Ecs 
 {
 	//forward declarations
-	DataChunk* build_chunk(ComponentCombination* cmpList);
-
+	DataChunk* Build_chunk(ComponentCombination* cmpList);
+	inline int Insert_entity_in_chunk(DataChunk* chunk, EntityID EID, bool bInitializeConstructors = true);
+	inline EntityID Erase_entity_in_chunk(DataChunk* chunk, uint16_t index);
 
 	
 	//retrieves a component's ComponentInfo
@@ -178,32 +179,146 @@ namespace Ecs
 
 		return chunk;
 	}
+	/***********************************
+	//ecs world
+	***********************************/
+	inline EntityID Allocate_entity(ECSWorld* world) {
+		EntityID newID;
+		//no dead entity IDs
+		if (world->dead_entities == 0) {
+			int index = world->entities.size();
 
+			EnityToChunk entity_chunk_mapping;
+			entity_chunk_mapping.chunk = nullptr;
+			entity_chunk_mapping.chunkIndex = 0;
+			entity_chunk_mapping.generation = 1;
+
+			world->entities.push_back(entity_chunk_mapping);
+
+			newID.generation = 1;
+			newID.index = index;
+		}
+		else { //dead entity IDs available for reuse
+			int index = world->deletedEntities.back();
+			world->deletedEntities.pop_back();
+
+			//increment generation count as we are recycling it
+			world->entities[index].generation++; 
+			//update our return value
+			newID.generation = world->entities[index].generation;
+			newID.index = index;
+			//decrease number of dead entity IDs available
+			world->dead_entities--;
+		}
+
+		world->live_entities++;
+		return newID;
+	}
+	/***********************************
+	//chunk
+	***********************************/
+	inline DataChunk* Find_free_chunk(Archetype* arch) {
+		DataChunk* targetChunk = nullptr;
+		if (arch->chunks.size() == 0) {
+			targetChunk = Create_chunk_for_archetype(arch);
+		}
+		else {
+			targetChunk = arch->chunks[arch->chunks.size() - 1];
+			//chunk is full, create a new one
+			if (targetChunk->header.last == arch->componentList->chunkCapacity) {
+				targetChunk = Create_chunk_for_archetype(arch);
+			}
+		}
+		return targetChunk;
+	}
 
 	/***********************************
 	//entity
 	***********************************/
+	inline void Move_entity_to_archetype(Archetype* newarch, EntityID id, bool bInitializeConstructors = true) {
+
+		//insert into new chunk
+		DataChunk* oldChunk = newarch->ownerWorld->entities[id.index].chunk;
+		DataChunk* newChunk = Find_free_chunk(newarch);
+
+		int newindex = Insert_entity_in_chunk(newChunk, id, bInitializeConstructors);
+		int oldindex = newarch->ownerWorld->entities[id.index].chunkIndex;
+
+		int oldNcomps = oldChunk->header.componentList->components.size();
+		int newNcomps = newChunk->header.componentList->components.size();
+
+		auto& oldClist = oldChunk->header.componentList;
+		auto& newClist = newChunk->header.componentList;
+
+		//copy all data from old chunk into new chunk
+		//bad iteration, fix later
+
+		struct Merge {
+			int msize;
+			int idxOld;
+			int idxNew;
+		};
+		int mergcount = 0;
+		Merge mergarray[32];
+
+		for (int i = 0; i < oldNcomps; i++) {
+			const ComponentInfo* mtCp1 = oldClist->components[i].type;
+			if (!mtCp1->is_empty()) {
+				for (int j = 0; j < newNcomps; j++) {
+					const ComponentInfo* mtCp2 = newClist->components[j].type;
+
+					//pointers are stable
+					if (mtCp2 == mtCp1) {
+						mergarray[mergcount].idxNew = j;
+						mergarray[mergcount].idxOld = i;
+						mergarray[mergcount].msize = mtCp1->size;
+						mergcount++;
+					}
+				}
+			}
+		}
+
+		for (int i = 0; i < mergcount; i++) {
+			//const Metatype* mtCp1 = mergarray[i].mtype;
+
+			//pointer for old location in old chunk
+			void* ptrOld = (void*)((byte*)oldChunk + oldClist->components[mergarray[i].idxOld].chunkOffset + (mergarray[i].msize * oldindex));
+
+			//pointer for new location in new chunk
+			void* ptrNew = (void*)((byte*)newChunk + newClist->components[mergarray[i].idxNew].chunkOffset + (mergarray[i].msize * newindex));
+
+			//memcopy component data from old to new
+			memcpy(ptrNew, ptrOld, mergarray[i].msize);
+		}
+
+		//delete entity from old chunk
+		Erase_entity_in_chunk(oldChunk, oldindex);
+
+		//assign entity chunk data
+		newarch->ownerWorld->entities[id.index].chunk = newChunk;
+		newarch->ownerWorld->entities[id.index].chunkIndex = newindex;
+	}
 	inline void Set_entity_archetype(Archetype* arch, EntityID id) {
 
 		//if chunk is null, we are a empty entity
 		if (arch->ownerWorld->entities[id.index].chunk == nullptr) {
 
-			DataChunk* targetChunk = find_free_chunk(arch);
+			DataChunk* targetChunk = Find_free_chunk(arch);
 
-			int index = insert_entity_in_chunk(targetChunk, id);
+			int index = Insert_entity_in_chunk(targetChunk, id);
 			arch->ownerWorld->entities[id.index].chunk = targetChunk;
 			arch->ownerWorld->entities[id.index].chunkIndex = index;
 		}
 		else {
-			move_entity_to_archetype(arch, id, false);
+			Move_entity_to_archetype(arch, id, false);
 		}
 	}
 	inline EntityID Create_entity_with_archetype(Archetype* arch) {
 		ECSWorld* world = arch->ownerWorld;
 
-		EntityID newID = allocate_entity(world);
+		EntityID newID = Allocate_entity(world);
 
-		set_entity_archetype(arch, newID);
+		Set_entity_archetype(arch, newID);
 
 		return newID;
 	}

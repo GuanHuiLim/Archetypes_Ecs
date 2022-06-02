@@ -22,8 +22,8 @@ namespace Ecs
 
 		std::unordered_map<uint64_t, void*> singleton_map{};
 
-		int live_entities{ 0 };
-		int dead_entities{ 0 };
+		int live_entities{ 0 }; //tracks number of active entity IDs
+		int dead_entities{ 0 }; //tracks number of dead entity IDs
 		inline ECSWorld();
 
 		~ECSWorld()
@@ -43,20 +43,22 @@ namespace Ecs
 		template<typename Func>
 		void for_each(Query& query, Func&& function);
 
+		//priority
 		template<typename Func>
 		void for_each(Func&& function);
 
+		//priority
 		template<typename C>
 		void add_component(EntityID id, C& comp);
 		template<typename C>
 		void add_component(EntityID id);
-
+		//priority
 		template<typename C>
 		void remove_component(EntityID id);
-
+		//priority
 		template<typename C>
 		bool has_component(EntityID id);
-
+		//priority
 		template<typename C>
 		C& get_component(EntityID id);
 
@@ -84,7 +86,7 @@ namespace Ecs
 				arch = Get_empty_archetype();
 			}
 
-			return adv::create_entity_with_archetype(arch);
+			return Create_entity_with_archetype(arch);
 		}
 
 		inline void destroy(EntityID eid);
