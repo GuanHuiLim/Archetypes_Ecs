@@ -81,7 +81,7 @@ namespace Ecs
 				arch = Find_or_create_archetype(this, types, num);
 			}
 			else {
-				arch = get_empty_archetype();
+				arch = Get_empty_archetype();
 			}
 
 			return adv::create_entity_with_archetype(arch);
@@ -89,6 +89,6 @@ namespace Ecs
 
 		inline void destroy(EntityID eid);
 
-		Archetype* get_empty_archetype() { return archetypes[0]; };
+		Archetype* Get_empty_archetype() { return archetypes[0]; };
 	};
 }

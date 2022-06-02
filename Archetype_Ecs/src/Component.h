@@ -85,8 +85,8 @@ namespace Ecs
 
 	//linked list header
 	struct DataChunkHeader {
-		struct ChunkComponentList* componentList; //pointer to the signature for this block
-		struct Archetype* archetype{ nullptr };
+		struct ComponentCombination* componentList; //pointer to the signature for this block
+		struct Archetype* archetype{ nullptr };	//what archtype this data chunk contains
 		struct DataChunk* prev{ nullptr };
 		struct DataChunk* next{ nullptr };
 		int16_t last{ 0 }; //max index that has an entity
@@ -101,9 +101,9 @@ namespace Ecs
 	//set of unique combination of components
 	struct ComponentCombination {
 		struct ComponentIdentifier {
-			const ComponentInfo* type;
-			TypeHash hash;
-			uint32_t chunkOffset;
+			const ComponentInfo* type; //information about the type
+			TypeHash hash; // hash of the component
+			uint32_t chunkOffset; //offset from start of chunk
 		};
 		int16_t chunkCapacity;
 		std::vector<ComponentIdentifier> components;

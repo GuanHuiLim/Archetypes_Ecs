@@ -5,6 +5,10 @@
 #include <algorithm>
 namespace Ecs 
 {
+	//forward declarations
+	DataChunk* build_chunk(ComponentCombination* cmpList);
+
+
 	
 	//retrieves a component's ComponentInfo
 	template<typename T>
@@ -25,11 +29,12 @@ namespace Ecs
 	inline ComponentCombination* Build_component_list(const ComponentInfo** types, size_t count) {
 		ComponentCombination* list = new ComponentCombination();
 
+		//calculate total size of all components
 		int component_size = sizeof(EntityID);
 		for (size_t i = 0; i < count; i++) {
 			component_size += types[i]->size;
 		}
-
+		//total size of allocated memory
 		size_t availableStorage = sizeof(DataChunk::storage);
 		//2 less than the real count to account for sizes and give some slack
 		size_t itemCount = (availableStorage / component_size) - 2;
@@ -78,6 +83,15 @@ namespace Ecs
 		}
 		return and_hash;
 	}
+	//add a new chunk to an archtype
+	inline DataChunk* Create_chunk_for_archetype(Archetype* arch) {
+		DataChunk* chunk = Build_chunk(arch->componentList);
+
+		chunk->header.archetype = arch;
+		arch->chunks.emplace_back(chunk);
+		return chunk;
+	}
+
 	//comparision function for sorting components in the correct order
 	inline bool Compare_ComponentInfo(const ComponentInfo* A, const ComponentInfo* B) {
 		//return A->name_hash < B->name_hash;
@@ -152,7 +166,45 @@ namespace Ecs
 		world->archetype_signature_map[matcher].push_back(newArch);
 
 		//we want archs to allways have 1 chunk at least, create initial
-		create_chunk_for_archetype(newArch);
+		Create_chunk_for_archetype(newArch);
 		return newArch;
+	}
+	//allocates new memory for a chunk
+	inline DataChunk* Build_chunk(ComponentCombination* cmpList) {
+
+		DataChunk* chunk = new DataChunk();
+		chunk->header.last = 0;
+		chunk->header.componentList = cmpList;
+
+		return chunk;
+	}
+
+
+	/***********************************
+	//entity
+	***********************************/
+	inline void Set_entity_archetype(Archetype* arch, EntityID id) {
+
+		//if chunk is null, we are a empty entity
+		if (arch->ownerWorld->entities[id.index].chunk == nullptr) {
+
+			DataChunk* targetChunk = find_free_chunk(arch);
+
+			int index = insert_entity_in_chunk(targetChunk, id);
+			arch->ownerWorld->entities[id.index].chunk = targetChunk;
+			arch->ownerWorld->entities[id.index].chunkIndex = index;
+		}
+		else {
+			move_entity_to_archetype(arch, id, false);
+		}
+	}
+	inline EntityID Create_entity_with_archetype(Archetype* arch) {
+		ECSWorld* world = arch->ownerWorld;
+
+		EntityID newID = allocate_entity(world);
+
+		set_entity_archetype(arch, newID);
+
+		return newID;
 	}
 }
