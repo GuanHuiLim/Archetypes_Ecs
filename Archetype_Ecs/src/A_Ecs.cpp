@@ -4,3 +4,6 @@ namespace Ecs
 {
 	std::unordered_map<uint64_t, ComponentInfo> componentInfo_map{};
 }
+
+//#include "World.cpp"
+//#include "EcsCommon.cpp"

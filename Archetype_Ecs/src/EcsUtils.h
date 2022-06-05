@@ -60,4 +60,5 @@ namespace Ecs
 		};
 	};
 
+	struct TestComponent{};
 }

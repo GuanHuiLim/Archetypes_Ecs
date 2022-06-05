@@ -2,6 +2,9 @@
 #include "EcsUtils.h"
 
 #include <typeinfo>
+#include <vector>
+#include <unordered_map>
+
 namespace Ecs
 {
 	extern std::unordered_map<uint64_t, ComponentInfo> componentInfo_map; //metatype_cache
@@ -44,7 +47,7 @@ namespace Ecs
 		bool is_empty() const { return align == 0u; };
 
 		template<typename T>
-		static constexpr ComponentInfo build_hash() {
+		static constexpr TypeHash build_hash() {
 
 			using base_type = std::remove_const_t<std::remove_reference_t<T>>;
 

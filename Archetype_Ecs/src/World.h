@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "EcsUtils.h"
-#include "EcsCommon.h"
 #include "Archetype.h"
 
 #include <vector>
@@ -70,26 +69,10 @@ namespace Ecs
 		C* get_singleton();
 
 		template<typename ... Comps>
-		inline EntityID new_entity()
-		{
-			Archetype* archetype = nullptr;
-			//empty component list will use the hardcoded null archetype
-			if constexpr (sizeof...(Comps) != 0) {
-				static const ComponentInfo* types[] = { Get_ComponentInfo<Comps>()... };
-				constexpr size_t num = (sizeof(types) / sizeof(*types));
-
-				Sort_ComponentInfo(types, num);
-				arch = Find_or_create_archetype(this, types, num);
-			}
-			else {
-				arch = Get_empty_archetype();
-			}
-
-			return Create_entity_with_archetype(arch);
-		}
+		inline EntityID new_entity();
 
 		inline void destroy(EntityID eid);
 
-		Archetype* Get_empty_archetype() { return archetypes[0]; };
+		Archetype* get_empty_archetype() { return archetypes[0]; };
 	};
-}
+}// namespace Ecs

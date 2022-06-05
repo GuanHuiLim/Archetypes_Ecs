@@ -3,7 +3,7 @@
 #include "Component.h"
 #include "Archetype.h"
 #include <algorithm>
-namespace Ecs 
+namespace Ecs::internal
 {
 	//forward declarations
 	DataChunk* Build_chunk(ComponentCombination* cmpList);
@@ -105,71 +105,7 @@ namespace Ecs
 			});
 	}
 	//retrieves or creates an archetype
-	inline Archetype* Find_or_create_archetype(ECSWorld* world, const ComponentInfo** types, size_t count) {
-		const ComponentInfo* temporalComponentInfoArray[MAX_COMPONENTS];
-		assert(count < MAX_COMPONENTS);
-
-		const ComponentInfo** typelist;
-
-		if (false) {//!is_sorted(types, count)) {
-			for (int i = 0; i < count; i++) {
-				temporalComponentInfoArray[i] = types[i];
-
-			}
-			Sort_ComponentInfo(temporalComponentInfoArray, count);
-			typelist = temporalComponentInfoArray;
-		}
-		else {
-			typelist = types;
-		}
-
-		const uint64_t matcher = Build_signature(typelist, count);
-
-		//try to find the archetype in the hashmap
-		auto iter = world->archetype_signature_map.find(matcher);
-		if (iter != world->archetype_signature_map.end()) {
-
-			//iterate the vector of archetypes
-			auto& archvec = iter->second;//world->archetype_signature_map[matcher];
-			for (int i = 0; i < archvec.size(); i++) {
-
-				auto componentList = archvec[i]->componentList;
-				int ccount = componentList->components.size();
-				// if requested number of components matches archetype's
-				// number of components
-				if (ccount == count) { 
-					for (int j = 0; j < ccount; j++) {
-						//check if components matches the typelist
-						if (componentList->components[j].type != typelist[j])
-						{
-							//mismatch, inmediately continue
-							goto contA;
-						}
-					}
-
-					//everything matched. Found. Return inmediately
-					return archvec[i];
-				}
-
-			contA:;
-			}
-		}
-
-		//not found, create a new one
-		Archetype* newArch = new Archetype();
-
-		newArch->full_chunks = 0;
-		newArch->componentList = Build_component_list(typelist, count);
-		newArch->componentHash = matcher;
-		newArch->ownerWorld = world;
-		world->archetypes.push_back(newArch);
-		world->archetypeSignatures.push_back(matcher);
-		world->archetype_signature_map[matcher].push_back(newArch);
-
-		//we want archs to allways have 1 chunk at least, create initial
-		Create_chunk_for_archetype(newArch);
-		return newArch;
-	}
+	Archetype* Find_or_create_archetype(ECSWorld* world, const ComponentInfo** types, size_t count);
 	//allocates new memory for a chunk
 	inline DataChunk* Build_chunk(ComponentCombination* cmpList) {
 
@@ -180,46 +116,42 @@ namespace Ecs
 		return chunk;
 	}
 	/***********************************
-	//ecs world
+	ecs world
 	***********************************/
 
 	//creates a new entity or recycles an unused one
-	inline EntityID Allocate_entity(ECSWorld* world) {
-		EntityID newID;
-		//no dead entity IDs
-		if (world->dead_entities == 0) {
-			int index = world->entities.size();
+	EntityID Allocate_entity(ECSWorld* world);
 
-			EnityToChunk entity_chunk_mapping;
-			entity_chunk_mapping.chunk = nullptr;
-			entity_chunk_mapping.chunkIndex = 0;
-			entity_chunk_mapping.generation = 1;
-
-			world->entities.push_back(entity_chunk_mapping);
-
-			newID.generation = 1;
-			newID.index = index;
-		}
-		else { //dead entity IDs available for reuse
-			int index = world->deletedEntities.back();
-			world->deletedEntities.pop_back();
-
-			//increment generation count as we are recycling it
-			world->entities[index].generation++; 
-			//update our return value
-			newID.generation = world->entities[index].generation;
-			newID.index = index;
-			//decrease number of dead entity IDs available
-			world->dead_entities--;
-		}
-
-		world->live_entities++;
-		return newID;
-	}
 	/***********************************
-	//chunk
+	chunk
 	***********************************/
+	//gets the array of a component
+	template<typename T>
+	inline auto Get_chunk_array(DataChunk* chunk) {
 
+		using ActualType = ::std::remove_reference_t<T>;
+
+		if constexpr (std::is_same<ActualType, EntityID>::value)
+		{
+			EntityID* ptr = ((EntityID*)chunk);
+			return ComponentArray<EntityID>(ptr, chunk);
+		}
+		else {
+			constexpr TypeHash hash = ComponentInfo::build_hash<ActualType>();
+
+			for (auto cmp : chunk->header.componentList->components) {
+				if (cmp.hash == hash)
+				{
+					void* ptr = (void*)((byte*)chunk + cmp.chunkOffset);
+
+					return ComponentArray<ActualType>(ptr, chunk);
+				}
+			}
+
+
+			return ComponentArray<ActualType>();
+		}
+	}
 	//reorder archetype with the fullness
 	inline void set_chunk_full(DataChunk* chunk) {
 
@@ -255,134 +187,99 @@ namespace Ecs
 		return targetChunk;
 	}
 	//inserts an entity into a chunk
-	inline int Insert_entity_in_chunk(DataChunk* chunk, EntityID EID, bool bInitializeConstructors) {
-		int index = -1;
-
-		ComponentCombination* cmpList = chunk->header.componentList;
-
-		//if chunk has not reached maximum capacity
-		if (chunk->header.last < cmpList->chunkCapacity) {
-
-			index = chunk->header.last;
-			chunk->header.last++;
-
-			if (bInitializeConstructors) {
-				//initialize component
-				for (auto& cmp : cmpList->components) {
-					const ComponentInfo* mtype = cmp.type;
-
-					//if is a component with data
-					if (!mtype->is_empty()) {
-						void* ptr = (void*)((byte*)chunk + cmp.chunkOffset + (mtype->size * index));
-
-						mtype->constructor(ptr);
-					}
-				}
-			}
-
-
-			//set eid at data chunk
-			EntityID* eidptr = ((EntityID*)chunk);
-			eidptr[index] = EID;
-
-			//if full, reorder it on archetype
-			if (chunk->header.last == cmpList->chunkCapacity) {
-				set_chunk_full(chunk);
-			}
-		}
-
-		return index;
-	}
+	int Insert_entity_in_chunk(DataChunk* chunk, EntityID EID, bool bInitializeConstructors);
 	/***********************************
-	//entity
+	entity
 	***********************************/
-	inline void Move_entity_to_archetype(Archetype* newarch, EntityID id, bool bInitializeConstructors = true) {
+	//true if entity exists and is being used
+	inline bool Is_entity_valid(ECSWorld* world, EntityID id);
+	//move an entity to another archtype, copying over all its components
+	inline void Move_entity_to_archetype(Archetype* newarch, EntityID id, bool bInitializeConstructors = true);
+	//set an entity into an archetype's entity array 
+	inline void Set_entity_archetype(Archetype* arch, EntityID id);
+	//create entity in an archtype
+	inline EntityID Create_entity_with_archetype(Archetype* arch);
+	//get the archtype an entity is in
+	inline Archetype* Get_entity_archetype(ECSWorld* world, EntityID id);
+	/***********************************
+	component
+	***********************************/
+	//get an component of an entity
+	template<typename C>
+	C& Get_entity_component(ECSWorld* world, EntityID id)
+	{
 
-		//insert into new chunk
-		DataChunk* oldChunk = newarch->ownerWorld->entities[id.index].chunk;
-		DataChunk* newChunk = Find_free_chunk(newarch);
+		EnityToChunk& storage = world->entities[id.index];
 
-		int newindex = Insert_entity_in_chunk(newChunk, id, bInitializeConstructors);
-		int oldindex = newarch->ownerWorld->entities[id.index].chunkIndex;
+		auto acrray = Get_chunk_array<C>(storage.chunk);
+		assert(acrray.chunkOwner != nullptr);
+		return acrray[storage.chunkIndex];
+	}
+	//true if entity has this component
+	template<typename C>
+	bool Has_component(ECSWorld* world, EntityID id)
+	{
+		EnityToChunk& storage = world->entities[id.index];
 
-		int oldNcomps = oldChunk->header.componentList->components.size();
-		int newNcomps = newChunk->header.componentList->components.size();
+		auto acrray = get_chunk_array<C>(storage.chunk);
+		return acrray.chunkOwner != nullptr;
+	}
+	//adds a component to an entity via default constructor
+	template<typename C>
+	void Add_component_to_entity(ECSWorld* world, EntityID id)
+	{
+		const ComponentInfo* tempComponentInfoArray[MAX_COMPONENTS];
 
-		auto& oldClist = oldChunk->header.componentList;
-		auto& newClist = newChunk->header.componentList;
+		const ComponentInfo* type = Get_ComponentInfo<C>();
 
-		//copy all data from old chunk into new chunk
-		//bad iteration, fix later
 
-		struct Merge {
-			int msize;
-			int idxOld;
-			int idxNew;
-		};
-		int mergcount = 0;
-		Merge mergarray[32];
+		Archetype* oldarch = Get_entity_archetype(world, id);
+		ComponentCombination* oldlist = oldarch->componentList;
+		bool typeFound = false;
+		int numComponents = oldlist->components.size();
+		//check if component we're looking for is in this entity's archtype
+		//obviously we do nothing if this entity's archtype has this component
+		for (int i = 0; i < oldlist->components.size(); i++) {
+			tempComponentInfoArray[i] = oldlist->components[i].type;
 
-		for (int i = 0; i < oldNcomps; i++) {
-			const ComponentInfo* mtCp1 = oldClist->components[i].type;
-			if (!mtCp1->is_empty()) {
-				for (int j = 0; j < newNcomps; j++) {
-					const ComponentInfo* mtCp2 = newClist->components[j].type;
-
-					//pointers are stable
-					if (mtCp2 == mtCp1) {
-						mergarray[mergcount].idxNew = j;
-						mergarray[mergcount].idxOld = i;
-						mergarray[mergcount].msize = mtCp1->size;
-						mergcount++;
-					}
-				}
+			//the pointers for metatypes are always fully stable
+			if (tempComponentInfoArray[i] == type) {
+				typeFound = true;
 			}
 		}
 
-		for (int i = 0; i < mergcount; i++) {
-			//const Metatype* mtCp1 = mergarray[i].mtype;
+		//if this entity's archtype is missing this component 
+		//we gotta find a new archtype
+		Archetype* newArch = oldarch;
+		if (!typeFound) {
+			//sort the components into proper order
+			tempComponentInfoArray[numComponents] = type;
+			Sort_ComponentInfo(tempComponentInfoArray, numComponents + 1);
+			numComponents++;
 
-			//pointer for old location in old chunk
-			void* ptrOld = (void*)((byte*)oldChunk + oldClist->components[mergarray[i].idxOld].chunkOffset + (mergarray[i].msize * oldindex));
+			//get the new archtype
+			newArch = Find_or_create_archetype(world, tempComponentInfoArray, numComponents);
 
-			//pointer for new location in new chunk
-			void* ptrNew = (void*)((byte*)newChunk + newClist->components[mergarray[i].idxNew].chunkOffset + (mergarray[i].msize * newindex));
 
-			//memcopy component data from old to new
-			memcpy(ptrNew, ptrOld, mergarray[i].msize);
+			//set entity into the new archtype
+			Set_entity_archetype(newArch, id);
 		}
 
-		//delete entity from old chunk
-		Erase_entity_in_chunk(oldChunk, oldindex);
-
-		//assign entity chunk data
-		newarch->ownerWorld->entities[id.index].chunk = newChunk;
-		newarch->ownerWorld->entities[id.index].chunkIndex = newindex;
 	}
-	inline void Set_entity_archetype(Archetype* arch, EntityID id) {
+	//adds a component to an entity via copy
+	template<typename C>
+	void Add_component_to_entity(ECSWorld* world, EntityID id, C& comp)
+	{
+		const ComponentInfo* type = Get_ComponentInfo<C>();
 
-		//if chunk is null, we are a empty entity
-		if (arch->ownerWorld->entities[id.index].chunk == nullptr) {
+		Add_component_to_entity<C>(world, id);
 
-			DataChunk* targetChunk = Find_free_chunk(arch);
 
-			int index = Insert_entity_in_chunk(targetChunk, id);
-			arch->ownerWorld->entities[id.index].chunk = targetChunk;
-			arch->ownerWorld->entities[id.index].chunkIndex = index;
-		}
-		else {
-			Move_entity_to_archetype(arch, id, false);
+		//optimize later
+		if (!type->is_empty()) {
+			Get_entity_component<C>(world, id) = comp;
 		}
 	}
-	inline EntityID Create_entity_with_archetype(Archetype* arch) {
-		ECSWorld* world = arch->ownerWorld;
-
-		EntityID newID = Allocate_entity(world);
-
-		Set_entity_archetype(arch, newID);
-
-		return newID;
-	}
 
 
-}
+}//namespace Ecs::internal
