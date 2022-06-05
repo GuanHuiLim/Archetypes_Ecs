@@ -25,7 +25,6 @@ namespace Ecs
 		int live_entities{ 0 }; //tracks number of active entity IDs
 		int dead_entities{ 0 }; //tracks number of dead entity IDs
 		inline ECSWorld();
-
 		~ECSWorld()
 		{
 			for (Archetype* arch : archetypes)

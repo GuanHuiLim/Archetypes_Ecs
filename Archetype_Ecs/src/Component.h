@@ -89,8 +89,9 @@ namespace Ecs
 		struct Archetype* archetype{ nullptr };	//what archtype this data chunk contains
 		struct DataChunk* prev{ nullptr };
 		struct DataChunk* next{ nullptr };
-		int16_t last{ 0 }; //max index that has an entity
+		int16_t last{ 0 }; //one after the last entity added
 	};
+	// header | entityID | component 1 data | component 2 data |...
 	struct alignas(32)DataChunk 
 	{
 		std::byte storage[BLOCK_MEMORY_16K - sizeof(DataChunkHeader)];
@@ -106,7 +107,7 @@ namespace Ecs
 			uint32_t chunkOffset; //offset from start of chunk
 		};
 		int16_t chunkCapacity;
-		std::vector<ComponentIdentifier> components;
+		std::vector<ComponentIdentifier> components; //all the components in this archtype
 	};
 
 	//an array for storing components

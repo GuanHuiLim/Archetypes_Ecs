@@ -182,6 +182,8 @@ namespace Ecs
 	/***********************************
 	//ecs world
 	***********************************/
+
+	//creates a new entity or recycles an unused one
 	inline EntityID Allocate_entity(ECSWorld* world) {
 		EntityID newID;
 		//no dead entity IDs
@@ -217,6 +219,27 @@ namespace Ecs
 	/***********************************
 	//chunk
 	***********************************/
+
+	//reorder archetype with the fullness
+	inline void set_chunk_full(DataChunk* chunk) {
+
+		Archetype* arch = chunk->header.archetype;
+		if (arch) {
+			arch->full_chunks++;
+
+			//do it properly later
+			int archsize = arch->componentList->chunkCapacity;
+
+			//all chunks that are full are shifted to beginning of vector
+			std::partition(arch->chunks.begin(), arch->chunks.end(), 
+				[archsize](DataChunk* cnk) {
+				return cnk->header.last == archsize;
+				});
+		}
+
+
+	}
+	//get the most recently added chunk, or add a new one if there's none
 	inline DataChunk* Find_free_chunk(Archetype* arch) {
 		DataChunk* targetChunk = nullptr;
 		if (arch->chunks.size() == 0) {
@@ -231,7 +254,45 @@ namespace Ecs
 		}
 		return targetChunk;
 	}
+	//inserts an entity into a chunk
+	inline int Insert_entity_in_chunk(DataChunk* chunk, EntityID EID, bool bInitializeConstructors) {
+		int index = -1;
 
+		ComponentCombination* cmpList = chunk->header.componentList;
+
+		//if chunk has not reached maximum capacity
+		if (chunk->header.last < cmpList->chunkCapacity) {
+
+			index = chunk->header.last;
+			chunk->header.last++;
+
+			if (bInitializeConstructors) {
+				//initialize component
+				for (auto& cmp : cmpList->components) {
+					const ComponentInfo* mtype = cmp.type;
+
+					//if is a component with data
+					if (!mtype->is_empty()) {
+						void* ptr = (void*)((byte*)chunk + cmp.chunkOffset + (mtype->size * index));
+
+						mtype->constructor(ptr);
+					}
+				}
+			}
+
+
+			//set eid at data chunk
+			EntityID* eidptr = ((EntityID*)chunk);
+			eidptr[index] = EID;
+
+			//if full, reorder it on archetype
+			if (chunk->header.last == cmpList->chunkCapacity) {
+				set_chunk_full(chunk);
+			}
+		}
+
+		return index;
+	}
 	/***********************************
 	//entity
 	***********************************/
@@ -322,4 +383,6 @@ namespace Ecs
 
 		return newID;
 	}
+
+
 }
