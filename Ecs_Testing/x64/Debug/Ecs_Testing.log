@@ -1,1 +1,27 @@
-﻿
+﻿  A_Ecs.cpp
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(137,42): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(146,20): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(152,40): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(160,34): warning C4267: '=': conversion from 'size_t' to 'int16_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(280,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(320,38): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(401,68): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(402,68): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  Ecs_Testing.cpp
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(137,42): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(146,20): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(152,40): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(160,34): warning C4267: '=': conversion from 'size_t' to 'int16_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(280,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(320,38): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(401,68): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(402,68): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(596,1): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(886): message : see reference to function template instantiation 'void Ecs::internal::add_component_to_entity<C>(Ecs::ECSWorld *,Ecs::EntityID)' being compiled
+          with
+          [
+              C=EcsTesting::A
+          ]
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Ecs_Testing\Ecs_Testing.cpp(80): message : see reference to function template instantiation 'void Ecs::ECSWorld::add_component<EcsTesting::A>(Ecs::EntityID)' being compiled
+  Generating Code...
+  Ecs_Testing.vcxproj -> D:\Digipen\2022_trimester6\Archetypes_Ecs\x64\Debug\Ecs_Testing.dll

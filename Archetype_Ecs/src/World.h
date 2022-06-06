@@ -20,6 +20,7 @@ namespace Ecs
 		std::vector<size_t> archetypeSignatures;
 
 		std::unordered_map<uint64_t, void*> singleton_map{};
+		std::unordered_map<uint64_t, ComponentInfo> singleton_info_map{};
 
 		int live_entities{ 0 }; //tracks number of active entity IDs
 		int dead_entities{ 0 }; //tracks number of dead entity IDs
@@ -28,11 +29,18 @@ namespace Ecs
 		{
 			for (Archetype* arch : archetypes)
 			{
+				//delete the data chunks
 				for (DataChunk* chunk : arch->chunks) {
 					delete chunk;
 				}
+				//rest of the dynamic memory variables
+				delete arch->componentList;
+
 				delete arch;
 			}
+			//delete singletons
+			for (auto s : singleton_map)
+				delete[] s.second;
 		};
 		//needs push_back(DataChunk*) to work, returns number
 		template<typename Container>

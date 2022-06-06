@@ -74,7 +74,7 @@ namespace Ecs::internal
 	type_list<Args...> args(Ret(Class::*)(Args...) const);
 
 	template<typename T>
-	static const ComponentInfo* get_metatype() {
+	static const ComponentInfo* get_ComponentInfo() {
 		static const ComponentInfo* mt = []() {
 			constexpr size_t name_hash = ComponentInfo::build_hash<T>().name_hash;
 
@@ -235,7 +235,7 @@ namespace Ecs::internal
 		return C - output;
 	}
 
-	inline void sort_metatypes(const ComponentInfo** types, size_t count) {
+	inline void sort_ComponentInfos(const ComponentInfo** types, size_t count) {
 		std::sort(types, types + count, [](const ComponentInfo* A, const ComponentInfo* B) {
 			return compare_metatypes(A, B);
 			});
@@ -250,8 +250,8 @@ namespace Ecs::internal
 	}
 
 	inline Archetype* find_or_create_archetype(ECSWorld* world, const ComponentInfo** types, size_t count) {
-		const ComponentInfo* temporalComponentInfoArray[32];
-		assert(count < 32);
+		const ComponentInfo* temporalComponentInfoArray[MAX_COMPONENTS];
+		assert(count < MAX_COMPONENTS);
 
 		const ComponentInfo** typelist;
 
@@ -260,7 +260,7 @@ namespace Ecs::internal
 				temporalComponentInfoArray[i] = types[i];
 
 			}
-			sort_metatypes(temporalComponentInfoArray, count);
+			sort_ComponentInfos(temporalComponentInfoArray, count);
 			typelist = temporalComponentInfoArray;
 		}
 		else {
@@ -413,7 +413,7 @@ namespace Ecs::internal
 			int idxNew;
 		};
 		int mergcount = 0;
-		Merge mergarray[32];
+		Merge mergarray[MAX_COMPONENTS];
 
 		for (int i = 0; i < oldNcomps; i++) {
 			const ComponentInfo* mtCp1 = oldClist->components[i].type;
@@ -506,6 +506,8 @@ namespace Ecs::internal
 
 			//implement later
 			uint64_t excludeTest = world->archetypeSignatures[i] & query.exclude_matcher;
+
+
 			if (includeTest != 0) {
 
 				auto componentList = world->archetypes[i]->componentList;
@@ -583,15 +585,15 @@ namespace Ecs::internal
 	template<typename C>
 	void add_component_to_entity(ECSWorld* world, EntityID id)
 	{
-		const ComponentInfo* temporalComponentInfoArray[32];
+		const ComponentInfo* temporalComponentInfoArray[MAX_COMPONENTS];
 
-		const ComponentInfo* type = get_metatype<C>();
+		const ComponentInfo* type = get_ComponentInfo<C>();
 
 
 		Archetype* oldarch = get_entity_archetype(world, id);
 		ComponentCombination* oldlist = oldarch->componentList;
 		bool typeFound = false;
-		int lenght = oldlist->components.size();
+		int length = oldlist->components.size();
 		for (int i = 0; i < oldlist->components.size(); i++) {
 			temporalComponentInfoArray[i] = oldlist->components[i].type;
 
@@ -604,12 +606,12 @@ namespace Ecs::internal
 		Archetype* newArch = oldarch;
 		if (!typeFound) {
 
-			temporalComponentInfoArray[lenght] = type;
-			sort_metatypes(temporalComponentInfoArray, lenght + 1);
-			lenght++;
+			temporalComponentInfoArray[length] = type;
+			sort_ComponentInfos(temporalComponentInfoArray, length + 1);
+			length++;
 
 
-			newArch = find_or_create_archetype(world, temporalComponentInfoArray, lenght);
+			newArch = find_or_create_archetype(world, temporalComponentInfoArray, length);
 
 
 
@@ -620,7 +622,7 @@ namespace Ecs::internal
 	template<typename C>
 	void add_component_to_entity(ECSWorld* world, EntityID id, C& comp)
 	{
-		const ComponentInfo* type = get_metatype<C>();
+		const ComponentInfo* type = get_ComponentInfo<C>();
 
 		add_component_to_entity<C>(world, id);
 
@@ -634,9 +636,9 @@ namespace Ecs::internal
 	template<typename C>
 	void remove_component_from_entity(ECSWorld* world, EntityID id)
 	{
-		const ComponentInfo* temporalComponentInfoArray[32];
+		const ComponentInfo* temporalComponentInfoArray[MAX_COMPONENTS];
 
-		const ComponentInfo* type = get_metatype<C>();
+		const ComponentInfo* type = get_ComponentInfo<C>();
 
 		Archetype* oldarch = get_entity_archetype(world, id);
 		ComponentCombination* oldlist = oldarch->componentList;
@@ -657,7 +659,7 @@ namespace Ecs::internal
 		if (typeFound) {
 
 			lenght--;
-			sort_metatypes(temporalComponentInfoArray, lenght);
+			sort_ComponentInfos(temporalComponentInfoArray, lenght);
 
 			newArch = find_or_create_archetype(world, temporalComponentInfoArray, lenght);
 
@@ -921,9 +923,12 @@ namespace Ecs
 		}
 		else {
 
-			C* new_singleton = new C(singleton);
-			singleton_map[type.name_hash] = (void*)new_singleton;
-			return new_singleton;
+			singleton_info_map[type.name_hash] = ComponentInfo::build<C>();
+			void* new_singleton = static_cast<void*>(new char[singleton_info_map[type.name_hash].size]);
+			//run the default constructor
+			singleton_info_map[type.name_hash].constructor(new_singleton);
+			singleton_map[type.name_hash] = new_singleton;
+			return static_cast<C*>(new_singleton);
 		}
 
 	}
@@ -948,10 +953,10 @@ namespace Ecs
 		Archetype* arch = nullptr;
 		//empty component list will use the hardcoded null archetype
 		if constexpr (sizeof...(Comps) != 0) {
-			static const ComponentInfo* types[] = { internal::get_metatype<Comps>()... };
+			static const ComponentInfo* types[] = { internal::get_ComponentInfo<Comps>()... };
 			constexpr size_t num = (sizeof(types) / sizeof(*types));
 
-			internal::sort_metatypes(types, num);
+			internal::sort_ComponentInfos(types, num);
 			arch = internal::find_or_create_archetype(this, types, num);
 		}
 		else {

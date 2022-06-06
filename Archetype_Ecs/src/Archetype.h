@@ -14,6 +14,7 @@ namespace Ecs
 		//full chunks allways on the start of the array
 		std::vector<DataChunk*> chunks;
 	};
+
 	//contains info for mapping which chunk an entity belongs to
 	struct EnityToChunk
 	{

@@ -1,1 +1,20 @@
-﻿
+﻿  main.cpp
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(137,42): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(146,20): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(152,40): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(160,34): warning C4267: '=': conversion from 'size_t' to 'int16_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(280,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(320,38): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(401,68): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(402,68): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  A_Ecs.cpp
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(137,42): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(146,20): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(152,40): warning C4267: '+=': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(160,34): warning C4267: '=': conversion from 'size_t' to 'int16_t', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(280,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(320,38): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(401,68): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Digipen\2022_trimester6\Archetypes_Ecs\Archetype_Ecs\src\A_Ecs.h(402,68): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  Generating Code...
+  Archetype_Ecs.vcxproj -> D:\Digipen\2022_trimester6\Archetypes_Ecs\x64\Debug\Archetype_Ecs.exe
