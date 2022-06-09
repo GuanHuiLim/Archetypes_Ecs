@@ -5,7 +5,7 @@
 
 #include "Query.h"
 #include "World.h"
-
+ 
 namespace Ecs
 {
 	template<typename C>
