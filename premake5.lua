@@ -9,8 +9,8 @@ project "ECS"
 
     files
     {
-        "Archetype_Ecs/src/A_Ecs.h",
-        "Archetype_Ecs/src/A_Ecs.cpp",
+        "Archetypes_Ecs/src/A_Ecs.h",
+        "Archetypes_Ecs/src/A_Ecs.cpp",
     }
 
     includedirs
