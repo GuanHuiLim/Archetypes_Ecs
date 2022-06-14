@@ -5,7 +5,8 @@
 
 #include "Query.h"
 #include "World.h"
-
+#include "System.h"
+ 
 namespace Ecs
 {
 	template<typename C>
@@ -176,7 +177,7 @@ namespace Ecs::internal
 			//size_t keyhash = ash_64_fnv1a(&types[i]->name_hash, sizeof(size_t));
 			//size_t keyhash = types[i]->name_hash;
 
-			and_hash |= types[i]->hash.matcher_hash;
+			and_hash ^= types[i]->hash.matcher_hash;
 			//and_hash |=(uint64_t)0x1L << (uint64_t)((types[i]->name_hash) % 63L);
 		}
 		return and_hash;
