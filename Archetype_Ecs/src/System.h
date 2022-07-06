@@ -15,6 +15,8 @@ namespace Ecs
 
 
 	protected:
-		void Run(ECSWorld* world) = 0;
+		virtual void Run(ECSWorld* world) = 0;
+
+		ECSWorld* world;
 	};
 }

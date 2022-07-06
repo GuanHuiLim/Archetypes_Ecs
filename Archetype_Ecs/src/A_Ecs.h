@@ -966,4 +966,25 @@ namespace Ecs
 
 		return internal::create_entity_with_archetype(arch);
 	}
+
+	template<typename S>
+	inline S* ECSWorld::Add_System() 
+	{
+		if (system_map.contains(typeid(S).name() == false)
+			return system_map[typeid(S).name()];
+		//create the system
+		S* system = new S();
+		constexpr if(std::derived_from<S, System> == true)
+			system->world = this;
+		system_map[typeid(S).name()] = system;
+	}
+
+	template<typename S>
+	inline S* ECSWorld::Get_System()
+	{
+		if (system_map.contains(typeid(S).name() == false)
+			return nullptr;
+
+			return system_map[typeid(S).name()];
+	}
 }
