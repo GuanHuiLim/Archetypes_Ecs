@@ -81,6 +81,10 @@ namespace Ecs
 		template<typename ... Comps>
 		inline EntityID new_entity();
 
+		EntityID new_entity(std::vector<uint64_t>const& component_hashes);
+
+		std::vector<uint64_t> const componentHashes(EntityID id);
+
 		inline void destroy(EntityID eid);
 
 		Archetype* get_empty_archetype() { return archetypes[0]; };

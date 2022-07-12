@@ -9,14 +9,12 @@ namespace Ecs
 	class System
 	{
 		friend class ECSWorld;
+	protected:
+		ECSWorld* world;
 	public:
 		System() = default;
 		virtual ~System() = default;
 
-
-	protected:
 		virtual void Run(ECSWorld* world) = 0;
-
-		ECSWorld* world;
 	};
 }

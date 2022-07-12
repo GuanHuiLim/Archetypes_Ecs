@@ -9,7 +9,7 @@ namespace Ecs
 	struct Archetype {
 		ComponentCombination* componentList;
 		struct ECSWorld* ownerWorld;
-		size_t componentHash;
+		size_t componentHash; //archetype signature computed from all the components
 		int full_chunks;
 		//full chunks allways on the start of the array
 		std::vector<DataChunk*> chunks;

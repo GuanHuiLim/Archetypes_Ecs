@@ -59,6 +59,7 @@ namespace Ecs
 }
 
 #include <algorithm>
+#include <concepts>
 namespace Ecs::internal
 {
 
@@ -967,16 +968,55 @@ namespace Ecs
 		return internal::create_entity_with_archetype(arch);
 	}
 
+
+	EntityID ECSWorld::new_entity(std::vector<uint64_t> const& component_hashes)
+	{
+		Archetype* arch = nullptr;
+		//empty component list will use the hardcoded null archetype
+		if (component_hashes.empty() == false) {
+			std::vector< ComponentInfo*> componentInfos;
+			componentInfos.reserve(component_hashes.size());
+			for (auto c : component_hashes)
+				componentInfos.emplace_back(&componentInfo_map[c]);
+
+			const ComponentInfo** types = &componentInfos[0];
+			size_t num = component_hashes.size();
+
+			internal::sort_ComponentInfos(types, num);
+			arch = internal::find_or_create_archetype(this, types, num);
+		}
+		else {
+			arch = get_empty_archetype();
+		}
+
+		return internal::create_entity_with_archetype(arch);
+	}
+
+	std::vector<uint64_t> const ECSWorld::componentHashes(EntityID id)
+	{
+		//if invalid id return nothing
+		if (internal::is_entity_valid(this, id) == false) return {};
+
+		std::vector<uint64_t> hashes;
+		Archetype* arch = entities[id.index].chunk->header.archetype;
+		for (auto& c : arch->componentList->components)
+			hashes.emplace_back(c.type->hash.name_hash);
+		
+		return hashes;
+	}
+
 	template<typename S>
-	inline S* ECSWorld::Add_System() 
+	inline S* ECSWorld::Add_System()
 	{
 		if (system_map.contains(typeid(S).name() == false)
 			return system_map[typeid(S).name()];
 		//create the system
 		S* system = new S();
-		constexpr if(std::derived_from<S, System> == true)
+		if constexpr (std::derived_from<S, System> == true) {
 			system->world = this;
+		}
 		system_map[typeid(S).name()] = system;
+			return system;
 	}
 
 	template<typename S>
@@ -985,6 +1025,6 @@ namespace Ecs
 		if (system_map.contains(typeid(S).name() == false)
 			return nullptr;
 
-			return system_map[typeid(S).name()];
+		return system_map[typeid(S).name()];
 	}
 }
