@@ -36,11 +36,11 @@ namespace Ecs
 		using ConstructorFn = void(void*);
 		using DestructorFn = void(void*);
 
-		TypeHash hash;
+		TypeHash hash{};
 
 		const char* name{ "none" }; //name 
-		ConstructorFn* constructor;
-		DestructorFn* destructor;
+		ConstructorFn* constructor{nullptr};
+		DestructorFn* destructor{ nullptr };
 		uint16_t size{ 0 };
 		uint16_t align{ 0 };
 
@@ -88,7 +88,7 @@ namespace Ecs
 
 	//linked list header
 	struct DataChunkHeader {
-		struct ComponentCombination* componentList; //pointer to the signature for this block
+		struct ComponentCombination* componentList{nullptr}; //pointer to the signature for this block
 		struct Archetype* archetype{ nullptr };	//what archtype this data chunk contains
 		struct DataChunk* prev{ nullptr };
 		struct DataChunk* next{ nullptr };

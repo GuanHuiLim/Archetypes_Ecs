@@ -22,6 +22,8 @@ namespace Ecs
 		std::unordered_map<uint64_t, void*> singleton_map{};
 		std::unordered_map<uint64_t, ComponentInfo> singleton_info_map{};
 
+		std::unordered_map<uint64_t, void*> system_map{};
+
 		int live_entities{ 0 }; //tracks number of active entity IDs
 		int dead_entities{ 0 }; //tracks number of dead entity IDs
 		inline ECSWorld();
@@ -79,8 +81,18 @@ namespace Ecs
 		template<typename ... Comps>
 		inline EntityID new_entity();
 
+		EntityID new_entity(std::vector<uint64_t>const& component_hashes);
+
+		std::vector<uint64_t> const componentHashes(EntityID id);
+
 		inline void destroy(EntityID eid);
 
 		Archetype* get_empty_archetype() { return archetypes[0]; };
+
+		template<typename S>
+		S* Add_System();
+
+		template<typename S>
+		S* Get_System();
 	};
 }// namespace Ecs
