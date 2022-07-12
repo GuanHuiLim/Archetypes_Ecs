@@ -8,7 +8,7 @@ namespace Ecs
 {
 	class System
 	{
-		friend class ECSWorld;
+		friend struct ECSWorld;
 	protected:
 		ECSWorld* world;
 	public:

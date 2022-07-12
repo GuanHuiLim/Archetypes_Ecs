@@ -136,7 +136,7 @@ namespace Ecs::internal
 		size_t itemCount = (availibleStorage / compsize) - 2;
 
 		uint32_t offsets = sizeof(DataChunkHeader);
-		offsets += sizeof(EntityID) * itemCount;
+		offsets += static_cast<uint32_t>(sizeof(EntityID) * itemCount);
 
 		for (size_t i = 0; i < count; i++) {
 			const ComponentInfo* type = types[i];
@@ -145,7 +145,7 @@ namespace Ecs::internal
 				//align properly
 				size_t remainder = offsets % type->align;
 				size_t oset = type->align - remainder;
-				offsets += oset;
+				offsets += static_cast<uint32_t>(oset);
 			}
 
 			list->components.push_back({ type,type->hash,offsets });
@@ -400,8 +400,8 @@ namespace Ecs::internal
 		int newindex = insert_entity_in_chunk(newChunk, id, bInitializeConstructors);
 		int oldindex = newarch->ownerWorld->entities[id.index].chunkIndex;
 
-		int oldNcomps = oldChunk->header.componentList->components.size();
-		int newNcomps = newChunk->header.componentList->components.size();
+		auto oldNcomps = oldChunk->header.componentList->components.size();
+		auto newNcomps = newChunk->header.componentList->components.size();
 
 		auto& oldClist = oldChunk->header.componentList;
 		auto& newClist = newChunk->header.componentList;
@@ -417,7 +417,7 @@ namespace Ecs::internal
 		int mergcount = 0;
 		Merge mergarray[MAX_COMPONENTS];
 
-		for (int i = 0; i < oldNcomps; i++) {
+		for (auto i = 0ull; i < oldNcomps; i++) {
 			const ComponentInfo* mtCp1 = oldClist->components[i].type;
 			if (!mtCp1->is_empty()) {
 				for (int j = 0; j < newNcomps; j++) {
@@ -438,10 +438,12 @@ namespace Ecs::internal
 			//const ComponentInfo* mtCp1 = mergarray[i].mtype;
 
 			//pointer for old location in old chunk
-			void* ptrOld = (void*)((byte*)oldChunk + oldClist->components[mergarray[i].idxOld].chunkOffset + (mergarray[i].msize * oldindex));
+			void* ptrOld = (void*)((byte*)oldChunk + oldClist->components[mergarray[i].idxOld].chunkOffset + 
+				(mergarray[i].msize * oldindex));
 
 			//pointer for new location in new chunk
-			void* ptrNew = (void*)((byte*)newChunk + newClist->components[mergarray[i].idxNew].chunkOffset + (mergarray[i].msize * newindex));
+			void* ptrNew = (void*)((byte*)newChunk + newClist->components[mergarray[i].idxNew].chunkOffset + 
+				(mergarray[i].msize * newindex));
 
 			//memcopy component data from old to new
 			memcpy(ptrNew, ptrOld, mergarray[i].msize);
@@ -595,7 +597,7 @@ namespace Ecs::internal
 		Archetype* oldarch = get_entity_archetype(world, id);
 		ComponentCombination* oldlist = oldarch->componentList;
 		bool typeFound = false;
-		int length = oldlist->components.size();
+		auto length = oldlist->components.size();
 		for (int i = 0; i < oldlist->components.size(); i++) {
 			temporalComponentInfoArray[i] = oldlist->components[i].type;
 
@@ -609,7 +611,7 @@ namespace Ecs::internal
 		if (!typeFound) {
 
 			temporalComponentInfoArray[length] = type;
-			sort_ComponentInfos(temporalComponentInfoArray, length + 1);
+			sort_ComponentInfos(temporalComponentInfoArray, length + 1ul);
 			length++;
 
 
@@ -968,47 +970,12 @@ namespace Ecs
 		return internal::create_entity_with_archetype(arch);
 	}
 
-
-	EntityID ECSWorld::new_entity(std::vector<uint64_t> const& component_hashes)
-	{
-		Archetype* arch = nullptr;
-		//empty component list will use the hardcoded null archetype
-		if (component_hashes.empty() == false) {
-			std::vector< ComponentInfo*> componentInfos;
-			componentInfos.reserve(component_hashes.size());
-			for (auto c : component_hashes)
-				componentInfos.emplace_back(&componentInfo_map[c]);
-
-			const ComponentInfo** types = &componentInfos[0];
-			size_t num = component_hashes.size();
-
-			internal::sort_ComponentInfos(types, num);
-			arch = internal::find_or_create_archetype(this, types, num);
-		}
-		else {
-			arch = get_empty_archetype();
-		}
-
-		return internal::create_entity_with_archetype(arch);
-	}
-
-	std::vector<uint64_t> const ECSWorld::componentHashes(EntityID id)
-	{
-		//if invalid id return nothing
-		if (internal::is_entity_valid(this, id) == false) return {};
-
-		std::vector<uint64_t> hashes;
-		Archetype* arch = entities[id.index].chunk->header.archetype;
-		for (auto& c : arch->componentList->components)
-			hashes.emplace_back(c.type->hash.name_hash);
-		
-		return hashes;
-	}
+	
 
 	template<typename S>
 	inline S* ECSWorld::Add_System()
 	{
-		if (system_map.contains(typeid(S).name() == false)
+		if (system_map.contains(typeid(S).name()) == false)
 			return system_map[typeid(S).name()];
 		//create the system
 		S* system = new S();
@@ -1022,7 +989,7 @@ namespace Ecs
 	template<typename S>
 	inline S* ECSWorld::Get_System()
 	{
-		if (system_map.contains(typeid(S).name() == false)
+		if (system_map.contains(typeid(S).name()) == false)
 			return nullptr;
 
 		return system_map[typeid(S).name()];

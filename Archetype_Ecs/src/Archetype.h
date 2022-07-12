@@ -7,12 +7,12 @@ namespace Ecs
 {
 	//represents a unique collection of components
 	struct Archetype {
-		ComponentCombination* componentList;
-		struct ECSWorld* ownerWorld;
-		size_t componentHash; //archetype signature computed from all the components
-		int full_chunks;
+		ComponentCombination* componentList{nullptr};
+		struct ECSWorld* ownerWorld{ nullptr };
+		size_t componentHash{0ul}; //archetype signature computed from all the components
+		int full_chunks{0};
 		//full chunks allways on the start of the array
-		std::vector<DataChunk*> chunks;
+		std::vector<DataChunk*> chunks{};
 	};
 
 	//contains info for mapping which chunk an entity belongs to
