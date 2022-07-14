@@ -468,7 +468,7 @@ namespace Ecs::internal
 			arch->ownerWorld->entities[id.index].chunkIndex = index;
 		}
 		else {
-			move_entity_to_archetype(arch, id, false);
+			move_entity_to_archetype(arch, id, true);
 		}
 	}
 	inline EntityID create_entity_with_archetype(Archetype* arch) {
@@ -632,7 +632,7 @@ namespace Ecs::internal
 
 
 		//optimize later
-		if (!type->is_empty()) {
+		if (type->is_empty() == false) {
 			get_entity_component<C>(world, id) = comp;
 		}
 	}
