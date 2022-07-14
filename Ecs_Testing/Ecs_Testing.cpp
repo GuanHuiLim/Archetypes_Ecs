@@ -82,6 +82,8 @@ namespace EcsTesting
 			world.add_component<B>(id,b);
 			auto& test_B = world.get_component<B>(id);
 
+			auto& test_A = world.get_component<A>(id);
+
 			Assert::IsTrue(test_B.x == b.x && test_B.y == b.y);
 		}
 
