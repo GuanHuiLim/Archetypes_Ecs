@@ -82,6 +82,7 @@ namespace Ecs
 		inline EntityID new_entity();
 
 		EntityID new_entity(std::vector<uint64_t>const& component_hashes);
+		EntityID duplicate_entity(EntityID id);
 
 		std::vector<uint64_t> const componentHashes(EntityID id);
 

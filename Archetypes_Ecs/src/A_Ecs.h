@@ -413,6 +413,7 @@ namespace Ecs::internal
 			int msize;
 			int idxOld;
 			int idxNew;
+			const ComponentInfo* info;
 		};
 		int mergcount = 0;
 		Merge mergarray[MAX_COMPONENTS];
@@ -428,6 +429,7 @@ namespace Ecs::internal
 						mergarray[mergcount].idxNew = j;
 						mergarray[mergcount].idxOld = i;
 						mergarray[mergcount].msize = mtCp1->size;
+						mergarray[mergcount].info = mtCp2;
 						mergcount++;
 					}
 				}
@@ -446,7 +448,9 @@ namespace Ecs::internal
 				(mergarray[i].msize * newindex));
 
 			//memcopy component data from old to new
-			memcpy(ptrNew, ptrOld, mergarray[i].msize);
+			//memcpy(ptrNew, ptrOld, mergarray[i].msize);
+			//move construct
+			mergarray[i].info->move_constructor(ptrNew, ptrOld);
 		}
 
 		//delete entity from old chunk
@@ -456,14 +460,86 @@ namespace Ecs::internal
 		newarch->ownerWorld->entities[id.index].chunk = newChunk;
 		newarch->ownerWorld->entities[id.index].chunkIndex = newindex;
 	}
-	inline void set_entity_archetype(Archetype* arch, EntityID id) {
+
+	inline void copy_entity_data_in_archetype(Archetype* arch, EntityID copy, EntityID original) {
+		//insert into new chunk
+		/*DataChunk* oldChunk = newarch->ownerWorld->entities[id.index].chunk;
+		DataChunk* newChunk = find_free_chunk(newarch);
+
+		int newindex = insert_entity_in_chunk(newChunk, id, bInitializeConstructors);
+		int oldindex = newarch->ownerWorld->entities[id.index].chunkIndex;*/
+
+		//auto oldNcomps = oldChunk->header.componentList->components.size();
+		//auto newNcomps = newChunk->header.componentList->components.size();
+
+		//auto& oldClist = oldChunk->header.componentList;
+		//auto& newClist = newChunk->header.componentList;
+		DataChunk* originalChunk = arch->ownerWorld->entities[original.index].chunk;
+		DataChunk* copyChunk	 = arch->ownerWorld->entities[copy.index].chunk;
+
+		auto& originalClist = originalChunk->header.componentList;
+		auto& copyClist		= copyChunk->header.componentList;
+
+		int originalindex = arch->ownerWorld->entities[original.index].chunkIndex;
+		int copyindex	  = arch->ownerWorld->entities[copy.index].chunkIndex;
+
+		auto& componentList = arch->componentList->components;
+
+		//copy all data from old chunk into new chunk
+		//bad iteration, fix later
+
+		struct Info {
+			int msize;
+			const ComponentInfo* info;
+		};
+		auto infocount = componentList.size();
+		Info infoarray[MAX_COMPONENTS];
+
+		//for (auto i = 0ull; i < oldNcomps; i++) {
+		//	const ComponentInfo* mtCp1 = oldClist->components[i].type;
+		//	if (!mtCp1->is_empty()) {
+		//		for (int j = 0; j < newNcomps; j++) {
+		//			const ComponentInfo* mtCp2 = newClist->components[j].type;
+
+		//			//pointers are stable
+		//			if (mtCp2 == mtCp1) {
+		//				mergarray[mergcount].idxNew = j;
+		//				mergarray[mergcount].idxOld = i;
+		//				mergarray[mergcount].msize = mtCp1->size;
+		//				mergarray[mergcount].info = mtCp2;
+		//				mergcount++;
+		//			}
+		//		}
+		//	}
+		//}
+
+		for (int i = 0; i < infocount; i++) {
+			//const ComponentInfo* mtCp1 = mergarray[i].mtype;
+
+			//pointer for old location in old chunk
+			void* ptrOriginal = (void*)((byte*)originalChunk + componentList[i].chunkOffset +
+				(componentList[i].type->size * originalindex));
+
+			//pointer for new location in new chunk
+			void* ptrCopy = (void*)((byte*)copyChunk + componentList[i].chunkOffset +
+				(componentList[i].type->size * copyindex));
+
+			//memcopy component data from old to new
+			//memcpy(ptrNew, ptrOld, mergarray[i].msize);
+			//copy construct
+			componentList[i].type->copy_constructor(ptrCopy, ptrOriginal);
+		}
+	
+	}
+
+	inline void set_entity_archetype(Archetype* arch, EntityID id, bool bInitializeConstructors = true) {
 
 		//if chunk is null, we are a empty entity
 		if (arch->ownerWorld->entities[id.index].chunk == nullptr) {
 
 			DataChunk* targetChunk = find_free_chunk(arch);
 
-			int index = insert_entity_in_chunk(targetChunk, id);
+			int index = insert_entity_in_chunk(targetChunk, id, bInitializeConstructors);
 			arch->ownerWorld->entities[id.index].chunk = targetChunk;
 			arch->ownerWorld->entities[id.index].chunkIndex = index;
 		}
@@ -471,15 +547,25 @@ namespace Ecs::internal
 			move_entity_to_archetype(arch, id, true);
 		}
 	}
-	inline EntityID create_entity_with_archetype(Archetype* arch) {
+	inline EntityID create_entity_with_archetype(Archetype* arch, bool bInitializeConstructors = true) {
 		ECSWorld* world = arch->ownerWorld;
 
 		EntityID newID = allocate_entity(world);
 
-		set_entity_archetype(arch, newID);
+		set_entity_archetype(arch, newID, bInitializeConstructors);
 
 		return newID;
 	}
+
+	inline EntityID duplicate_entity_with_archetype(Archetype* arch, EntityID id) {
+		EntityID newID = create_entity_with_archetype(arch,false);
+
+		copy_entity_data_in_archetype(arch, newID, id);
+
+		return newID;
+	}
+
+
 	inline Archetype* get_entity_archetype(ECSWorld* world, EntityID id)
 	{
 		assert(is_entity_valid(world, id));

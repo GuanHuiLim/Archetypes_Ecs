@@ -35,12 +35,16 @@ namespace Ecs
 	{
 		using ConstructorFn = void(void*);
 		using DestructorFn = void(void*);
+		using CopyConstructorFn = void(void* self, void* copy);
+		using MoveConstructorFn = void(void* self, void* other);
 
 		TypeHash hash{};
 
 		const char* name{ "none" }; //name 
 		ConstructorFn* constructor{nullptr};
 		DestructorFn* destructor{ nullptr };
+		CopyConstructorFn* copy_constructor{ nullptr };
+		MoveConstructorFn* move_constructor{ nullptr };
 		uint16_t size{ 0 };
 		uint16_t align{ 0 };
 
@@ -80,6 +84,16 @@ namespace Ecs
 			info.destructor = [](void* p)
 			{
 				((T*)p)->~T();
+			};
+
+			info.copy_constructor = [](void* self, void* copy)
+			{
+				new(self) T{*(static_cast<T*>(copy))};
+			};
+
+			info.move_constructor = [](void* self, void* other)
+			{
+				new(self) T{ std::move( *(static_cast<T*>(other)) ) };
 			};
 
 			return info;
