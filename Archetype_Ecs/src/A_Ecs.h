@@ -413,6 +413,7 @@ namespace Ecs::internal
 			int msize;
 			int idxOld;
 			int idxNew;
+			const ComponentInfo* info;
 		};
 		int mergcount = 0;
 		Merge mergarray[MAX_COMPONENTS];
@@ -428,6 +429,7 @@ namespace Ecs::internal
 						mergarray[mergcount].idxNew = j;
 						mergarray[mergcount].idxOld = i;
 						mergarray[mergcount].msize = mtCp1->size;
+						mergarray[mergcount].info = mtCp2;
 						mergcount++;
 					}
 				}
@@ -446,7 +448,9 @@ namespace Ecs::internal
 				(mergarray[i].msize * newindex));
 
 			//memcopy component data from old to new
-			memcpy(ptrNew, ptrOld, mergarray[i].msize);
+			//memcpy(ptrNew, ptrOld, mergarray[i].msize);
+			//move construct
+			mergarray[i].info->move_constructor(ptrNew, ptrOld);
 		}
 
 		//delete entity from old chunk
