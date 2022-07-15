@@ -27,6 +27,16 @@ namespace Ecs
 		return internal::create_entity_with_archetype(arch);
 	}
 
+	EntityID ECSWorld::duplicate_entity(EntityID id)
+	{
+		assert(internal::is_entity_valid(this,id));
+		Archetype* arch = internal::get_entity_archetype(this, id);
+
+
+
+		return internal::duplicate_entity_with_archetype(arch, id);
+	}
+
 
 	std::vector<uint64_t> const ECSWorld::componentHashes(EntityID id)
 	{

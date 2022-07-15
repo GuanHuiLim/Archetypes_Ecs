@@ -43,6 +43,8 @@ namespace EcsTesting
 		{
 			Ecs::ECSWorld world;
 			auto id = world.new_entity();
+
+			Assert::IsTrue(true);
 		}
 
 		*/
@@ -152,6 +154,28 @@ namespace EcsTesting
 					|| b != defaultB)
 					result = false;
 			}
+
+			Assert::IsTrue(result);
+		}
+
+		TEST_METHOD(DuplicateEntity)
+		{
+			Ecs::ECSWorld world;
+			auto original = world.new_entity<A,B>();
+
+			auto& test_A = world.get_component<A>(original);
+			auto& test_B = world.get_component<B>(original);
+
+			test_A.x = 100; test_A.y = -200;
+			test_B.x = 100.f; test_B.y = -200.f;
+
+			auto copy = world.duplicate_entity(original);
+
+			auto& ctest_A = world.get_component<A>(original);
+			auto& ctest_B = world.get_component<B>(original);
+
+			bool result = (ctest_A.x == test_A.x && ctest_A.y == test_A.y) &&
+				(ctest_B.x == ctest_B.x && ctest_B.y == ctest_B.y);
 
 			Assert::IsTrue(result);
 		}
