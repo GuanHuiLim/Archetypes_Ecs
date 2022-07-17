@@ -4,6 +4,34 @@ namespace Ecs
 {
 	std::unordered_map<uint64_t, ComponentInfo> componentInfo_map{};
 
+	ECSWorld::~ECSWorld()
+	{
+		//destuctor for all entity components
+		for (auto& entt : entities)
+		{
+			//erase_entity_in_chunk(oldChunk, oldindex);
+			internal::erase_entity_in_chunk(entt.chunk, entt.chunkIndex);
+		}
+
+
+
+		for (Archetype* arch : archetypes)
+		{
+			//delete the data chunks
+			for (DataChunk* chunk : arch->chunks) {
+
+				delete chunk;
+			}
+			//rest of the dynamic memory variables
+			delete arch->componentList;
+
+			delete arch;
+		}
+		//delete singletons
+		for (auto s : singleton_map)
+			delete[] s.second;
+	};
+
 	EntityID ECSWorld::new_entity(std::vector<uint64_t> const& component_hashes)
 	{
 		Archetype* arch = nullptr;

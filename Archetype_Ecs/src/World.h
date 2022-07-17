@@ -27,23 +27,8 @@ namespace Ecs
 		int live_entities{ 0 }; //tracks number of active entity IDs
 		int dead_entities{ 0 }; //tracks number of dead entity IDs
 		inline ECSWorld();
-		~ECSWorld()
-		{
-			for (Archetype* arch : archetypes)
-			{
-				//delete the data chunks
-				for (DataChunk* chunk : arch->chunks) {
-					delete chunk;
-				}
-				//rest of the dynamic memory variables
-				delete arch->componentList;
+		~ECSWorld();
 
-				delete arch;
-			}
-			//delete singletons
-			for (auto s : singleton_map)
-				delete[] s.second;
-		};
 		//needs push_back(DataChunk*) to work, returns number
 		template<typename Container>
 		int gather_chunks(Query& query, Container& container);
