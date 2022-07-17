@@ -37,6 +37,7 @@ namespace Ecs
 		using DestructorFn = void(void*);
 		using CopyConstructorFn = void(void* self, void* copy);
 		using MoveConstructorFn = void(void* self, void* other);
+		using MoveAssignmentFn = void(void* self, void* other);
 
 		TypeHash hash{};
 
@@ -45,6 +46,7 @@ namespace Ecs
 		DestructorFn* destructor{ nullptr };
 		CopyConstructorFn* copy_constructor{ nullptr };
 		MoveConstructorFn* move_constructor{ nullptr };
+		MoveAssignmentFn*  move_assignment{ nullptr };
 		uint16_t size{ 0 };
 		uint16_t align{ 0 };
 
@@ -94,6 +96,12 @@ namespace Ecs
 			info.move_constructor = [](void* self, void* other)
 			{
 				new(self) T{ std::move( *(static_cast<T*>(other)) ) };
+			};
+
+			info.move_assignment = [](void* self, void* other)
+			{
+				T* ptr = static_cast<T*>(self);
+				*ptr = std::move(*(static_cast<T*>(other)));
 			};
 
 			return info;

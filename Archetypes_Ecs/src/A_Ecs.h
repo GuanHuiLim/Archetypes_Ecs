@@ -450,7 +450,10 @@ namespace Ecs::internal
 			//memcopy component data from old to new
 			//memcpy(ptrNew, ptrOld, mergarray[i].msize);
 			//move construct
-			mergarray[i].info->move_constructor(ptrNew, ptrOld);
+			//mergarray[i].info->move_constructor(ptrNew, ptrOld);
+			
+			//actualy screw that, move assign
+			mergarray[i].info->move_assignment(ptrNew, ptrOld);
 		}
 
 		//delete entity from old chunk
@@ -684,15 +687,19 @@ namespace Ecs::internal
 		ComponentCombination* oldlist = oldarch->componentList;
 		bool typeFound = false;
 		auto length = oldlist->components.size();
+		//fill up component info array
 		for (int i = 0; i < oldlist->components.size(); i++) {
 			temporalComponentInfoArray[i] = oldlist->components[i].type;
 
-			//the pointers for metatypes are allways fully stable
+			//the pointers for metatypes are always fully stable
+			
+			//if the component is somehow already added, we do nothing
 			if (temporalComponentInfoArray[i] == type) {
 				typeFound = true;
 			}
 		}
 
+		//move the entity into the new archetype
 		Archetype* newArch = oldarch;
 		if (!typeFound) {
 
@@ -875,6 +882,7 @@ namespace Ecs::internal
 		if (chunk->header.last == 0) {
 			delete_chunk_from_archetype(chunk);
 		}
+		//if chunk used to be full, its not anymore so tell the archetype
 		else if (bWasFull) {
 			set_chunk_partial(chunk);
 		}
