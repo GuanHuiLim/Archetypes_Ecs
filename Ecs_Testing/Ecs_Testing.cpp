@@ -9,6 +9,7 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <string>
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace EcsTesting
@@ -20,7 +21,7 @@ namespace EcsTesting
 		{
 			return lhs.x == rhs.x && lhs.y == rhs.y;
 		}
-	
+		std::string str{ "nonsense" };
 	};
 	struct B {
 		float x{ -1.f }, y{-2.f};
