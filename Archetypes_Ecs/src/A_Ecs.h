@@ -6,13 +6,13 @@
 #include "Query.h"
 #include "World.h"
 #include "System.h"
- 
+#include "Wrapper.h"
 namespace Ecs
 {
 	template<typename C>
 	struct CachedRef
 	{
-		C* get_from(ECSWorld* world, EntityID target);
+		C* get_from(IECSWorld* world, EntityID target);
 
 		C* pointer;
 		EnityToChunk storage;
@@ -21,7 +21,7 @@ namespace Ecs
 
 
 	template<typename C>
-	C* CachedRef<C>::get_from(ECSWorld* world, EntityID target)
+	C* CachedRef<C>::get_from(IECSWorld* world, EntityID target)
 	{
 		if (world->entities[target.index] != storage) {
 			pointer = &world->get_component<C>(target);
@@ -251,7 +251,7 @@ namespace Ecs::internal
 		return true;
 	}
 
-	inline Archetype* find_or_create_archetype(ECSWorld* world, const ComponentInfo** types, size_t count) {
+	inline Archetype* find_or_create_archetype(IECSWorld* world, const ComponentInfo** types, size_t count) {
 		const ComponentInfo* temporalComponentInfoArray[MAX_COMPONENTS];
 		assert(count < MAX_COMPONENTS);
 
@@ -316,7 +316,7 @@ namespace Ecs::internal
 	}
 
 
-	inline EntityID allocate_entity(ECSWorld* world) {
+	inline EntityID allocate_entity(IECSWorld* world) {
 		EntityID newID;
 		if (world->dead_entities == 0) {
 			int index = world->entities.size();
@@ -346,7 +346,7 @@ namespace Ecs::internal
 		return newID;
 	}
 
-	inline bool is_entity_valid(ECSWorld* world, EntityID id) {
+	inline bool is_entity_valid(IECSWorld* world, EntityID id) {
 		//index check
 		if (world->entities.size() > id.index && id.index >= 0) {
 
@@ -358,7 +358,7 @@ namespace Ecs::internal
 		}
 		return false;
 	}
-	inline void deallocate_entity(ECSWorld* world, EntityID id) {
+	inline void deallocate_entity(IECSWorld* world, EntityID id) {
 
 		//todo add valid check
 		world->deletedEntities.push_back(id.index);
@@ -370,7 +370,7 @@ namespace Ecs::internal
 		world->dead_entities++;
 	}
 
-	inline void destroy_entity(ECSWorld* world, EntityID id) {
+	inline void destroy_entity(IECSWorld* world, EntityID id) {
 		assert(is_entity_valid(world, id));
 		erase_entity_in_chunk(world->entities[id.index].chunk, world->entities[id.index].chunkIndex);
 		deallocate_entity(world, id);
@@ -551,7 +551,7 @@ namespace Ecs::internal
 		}
 	}
 	inline EntityID create_entity_with_archetype(Archetype* arch, bool bInitializeConstructors = true) {
-		ECSWorld* world = arch->ownerWorld;
+		IECSWorld* world = arch->ownerWorld;
 
 		EntityID newID = allocate_entity(world);
 
@@ -569,7 +569,7 @@ namespace Ecs::internal
 	}
 
 
-	inline Archetype* get_entity_archetype(ECSWorld* world, EntityID id)
+	inline Archetype* get_entity_archetype(IECSWorld* world, EntityID id)
 	{
 		assert(is_entity_valid(world, id));
 
@@ -578,19 +578,19 @@ namespace Ecs::internal
 
 
 	template<typename C>
-	bool has_component(ECSWorld* world, EntityID id);
+	bool has_component(IECSWorld* world, EntityID id);
 
 	template<typename C>
-	C& get_entity_component(ECSWorld* world, EntityID id);
+	C& get_entity_component(IECSWorld* world, EntityID id);
 
 	template<typename C>
-	void add_component_to_entity(ECSWorld* world, EntityID id, C&& comp);
+	void add_component_to_entity(IECSWorld* world, EntityID id, C&& comp);
 
 	template<typename C>
-	void remove_component_from_entity(ECSWorld* world, EntityID id);
+	void remove_component_from_entity(IECSWorld* world, EntityID id);
 
 	template<typename F>
-	void iterate_matching_archetypes(ECSWorld* world, const Query& query, F&& function) {
+	void iterate_matching_archetypes(IECSWorld* world, const IQuery& query, F&& function) {
 
 		for (int i = 0; i < world->archetypeSignatures.size(); i++)
 		{
@@ -656,7 +656,7 @@ namespace Ecs::internal
 
 
 	template<typename C>
-	C& get_entity_component(ECSWorld* world, EntityID id)
+	C& get_entity_component(IECSWorld* world, EntityID id)
 	{
 
 		EnityToChunk& storage = world->entities[id.index];
@@ -668,7 +668,7 @@ namespace Ecs::internal
 
 
 	template<typename C>
-	bool has_component(ECSWorld* world, EntityID id)
+	bool has_component(IECSWorld* world, EntityID id)
 	{
 		EnityToChunk& storage = world->entities[id.index];
 
@@ -676,7 +676,7 @@ namespace Ecs::internal
 		return acrray.chunkOwner != nullptr;
 	}
 	template<typename C>
-	void add_component_to_entity(ECSWorld* world, EntityID id)
+	void add_component_to_entity(IECSWorld* world, EntityID id)
 	{
 		const ComponentInfo* temporalComponentInfoArray[MAX_COMPONENTS];
 
@@ -717,7 +717,7 @@ namespace Ecs::internal
 
 	}
 	template<typename C>
-	void add_component_to_entity(ECSWorld* world, EntityID id, C& comp)
+	void add_component_to_entity(IECSWorld* world, EntityID id, C& comp)
 	{
 		const ComponentInfo* type = get_ComponentInfo<C>();
 
@@ -731,7 +731,7 @@ namespace Ecs::internal
 	}
 
 	template<typename C>
-	void remove_component_from_entity(ECSWorld* world, EntityID id)
+	void remove_component_from_entity(IECSWorld* world, EntityID id)
 	{
 		const ComponentInfo* temporalComponentInfoArray[MAX_COMPONENTS];
 
@@ -801,7 +801,7 @@ namespace Ecs::internal
 		entity_chunk_iterate<Args...>(chunk, function);
 	}
 	template<typename ...Args>
-	Query& unpack_querywith(type_list<Args...> types, Query& query) {
+	IQuery& unpack_querywith(type_list<Args...> types, IQuery& query) {
 		return query.with<Args...>();
 	}
 
@@ -910,7 +910,7 @@ namespace Ecs::internal
 
 namespace Ecs
 {
-	inline ECSWorld::ECSWorld()
+	inline IECSWorld::IECSWorld()
 	{
 		Archetype* nullArch = new Archetype();
 
@@ -930,7 +930,7 @@ namespace Ecs
 	}
 
 	template<typename Container>
-	int ECSWorld::gather_chunks(Query& query, Container& container)
+	int IECSWorld::gather_chunks(IQuery& query, Container& container)
 	{
 		int count = 0;
 		internal::iterate_matching_archetypes(this, query, [&](Archetype* arch) {
@@ -943,13 +943,13 @@ namespace Ecs
 		return count;
 	}
 
-	inline void ECSWorld::destroy(EntityID eid)
+	inline void IECSWorld::destroy(EntityID eid)
 	{
 		internal::destroy_entity(this, eid);
 	}
 
 	template<typename Func>
-	void ECSWorld::for_each(Query& query, Func&& function)
+	void IECSWorld::for_each(IQuery& query, Func&& function)
 	{
 		using params = decltype(internal::args(&Func::operator()));
 
@@ -962,55 +962,55 @@ namespace Ecs
 			});
 	}
 	template<typename Func>
-	void ECSWorld::for_each(Func&& function)
+	void IECSWorld::for_each(Func&& function)
 	{
 		using params = decltype(internal::args(&Func::operator()));
 
-		Query query;
+		IQuery query;
 		internal::unpack_querywith(params{}, query).build();
 
 		for_each<Func>(query, std::move(function));
 	}
 
 	template<typename C>
-	inline void ECSWorld::add_component(EntityID id, C& comp)
+	inline void IECSWorld::add_component(EntityID id, C& comp)
 	{
 		internal::add_component_to_entity<C>(this, id, comp);
 	}
 
 	template<typename C>
-	void ECSWorld::add_component(EntityID id)
+	void IECSWorld::add_component(EntityID id)
 	{
 		internal::add_component_to_entity<C>(this, id);
 	}
 
 	template<typename C>
-	inline void ECSWorld::remove_component(EntityID id)
+	inline void IECSWorld::remove_component(EntityID id)
 	{
 		internal::remove_component_from_entity<C>(this, id);
 	}
 
 
 	template<typename C>
-	bool ECSWorld::has_component(EntityID id)
+	bool IECSWorld::has_component(EntityID id)
 	{
 		return internal::has_component<C>(this, id);
 	}
 
 	template<typename C>
-	C& ECSWorld::get_component(EntityID id)
+	C& IECSWorld::get_component(EntityID id)
 	{
 		return internal::get_entity_component<C>(this, id);
 	}
 
 	template<typename C>
-	inline C* ECSWorld::set_singleton()
+	inline C* IECSWorld::set_singleton()
 	{
 		return set_singleton<C>(C{});
 	}
 
 	template<typename C>
-	inline C* ECSWorld::set_singleton(C&& singleton)
+	inline C* IECSWorld::set_singleton(C&& singleton)
 	{
 		constexpr TypeHash type = ComponentInfo::build_hash<C>();
 
@@ -1032,7 +1032,7 @@ namespace Ecs
 	}
 
 	template<typename C>
-	inline C* ECSWorld::get_singleton()
+	inline C* IECSWorld::get_singleton()
 	{
 		constexpr TypeHash type = ComponentInfo::build_hash<C>();
 
@@ -1046,7 +1046,7 @@ namespace Ecs
 	}
 
 	template<typename ...Comps>
-	inline EntityID ECSWorld::new_entity()
+	inline EntityID IECSWorld::new_entity()
 	{
 		Archetype* arch = nullptr;
 		//empty component list will use the hardcoded null archetype
@@ -1067,9 +1067,9 @@ namespace Ecs
 	
 
 	template<typename S>
-	inline S* ECSWorld::Add_System()
+	inline S* IECSWorld::Add_System()
 	{
-		if (system_map.contains(typeid(S).name()) == false)
+		if (system_map.contains(typeid(S).name()))
 			return system_map[typeid(S).name()];
 		//create the system
 		S* system = new S();
@@ -1081,7 +1081,7 @@ namespace Ecs
 	}
 
 	template<typename S>
-	inline S* ECSWorld::Get_System()
+	inline S* IECSWorld::Get_System()
 	{
 		if (system_map.contains(typeid(S).name()) == false)
 			return nullptr;

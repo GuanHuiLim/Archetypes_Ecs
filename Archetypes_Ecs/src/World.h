@@ -7,7 +7,7 @@
 namespace Ecs
 {
 
-	struct ECSWorld {
+	struct IECSWorld {
 		std::vector<EnityToChunk> entities;
 		std::vector<EntityID::index_type> deletedEntities;
 
@@ -26,15 +26,15 @@ namespace Ecs
 
 		int live_entities{ 0 }; //tracks number of active entity IDs
 		int dead_entities{ 0 }; //tracks number of dead entity IDs
-		inline ECSWorld();
-		~ECSWorld();
+		inline IECSWorld();
+		~IECSWorld();
 
 		//needs push_back(DataChunk*) to work, returns number
 		template<typename Container>
-		int gather_chunks(Query& query, Container& container);
+		int gather_chunks(IQuery& query, Container& container);
 
 		template<typename Func>
-		void for_each(Query& query, Func&& function);
+		void for_each(IQuery& query, Func&& function);
 
 		//priority
 		template<typename Func>
