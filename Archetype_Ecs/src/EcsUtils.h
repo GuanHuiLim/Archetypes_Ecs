@@ -20,8 +20,8 @@ namespace Ecs
 	struct ComponentCombination; //ChunkComponentList
 	struct Archetype;
 	struct EnityToChunk;	//EntityStorage
-	struct Query;
-	struct ECSWorld;
+	struct IQuery;
+	struct IECSWorld;
 	struct System;
 
 	inline constexpr uint64_t hash_64_fnv1a(const char* key, const uint64_t len) {

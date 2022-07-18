@@ -4,7 +4,7 @@ namespace Ecs
 {
 	std::unordered_map<uint64_t, ComponentInfo> componentInfo_map{};
 
-	ECSWorld::~ECSWorld()
+	IECSWorld::~IECSWorld()
 	{
 		//destuctor for all entity components
 		for (auto& entt : entities)
@@ -32,7 +32,7 @@ namespace Ecs
 			delete[] s.second;
 	};
 
-	EntityID ECSWorld::new_entity(std::vector<uint64_t> const& component_hashes)
+	EntityID IECSWorld::new_entity(std::vector<uint64_t> const& component_hashes)
 	{
 		Archetype* arch = nullptr;
 		//empty component list will use the hardcoded null archetype
@@ -55,7 +55,7 @@ namespace Ecs
 		return internal::create_entity_with_archetype(arch);
 	}
 
-	EntityID ECSWorld::duplicate_entity(EntityID id)
+	EntityID IECSWorld::duplicate_entity(EntityID id)
 	{
 		assert(internal::is_entity_valid(this,id));
 		Archetype* arch = internal::get_entity_archetype(this, id);
@@ -66,7 +66,7 @@ namespace Ecs
 	}
 
 
-	std::vector<uint64_t> const ECSWorld::componentHashes(EntityID id)
+	std::vector<uint64_t> const IECSWorld::componentHashes(EntityID id)
 	{
 		//if invalid id return nothing
 		if (internal::is_entity_valid(this, id) == false) return {};
@@ -77,6 +77,27 @@ namespace Ecs
 			hashes.emplace_back(c.type->hash.name_hash);
 
 		return hashes;
+	}
+
+
+	EntityID ECSWorld::new_entity(std::vector<uint64_t> const& component_hashes)
+	{
+		return world.new_entity(component_hashes);
+	}
+
+	EntityID ECSWorld::duplicate_entity(EntityID id)
+	{
+		return world.duplicate_entity(id);
+	}
+
+	std::vector<uint64_t> const ECSWorld::componentHashes(EntityID id)
+	{
+		return world.componentHashes(id);
+	}
+
+	void ECSWorld::destroy(EntityID eid)
+	{
+		world.destroy(eid);
 	}
 }
 

@@ -8,7 +8,7 @@ namespace Ecs
 	//represents a unique collection of components
 	struct Archetype {
 		ComponentCombination* componentList{nullptr};
-		struct ECSWorld* ownerWorld{ nullptr };
+		struct IECSWorld* ownerWorld{ nullptr };
 		size_t componentHash{0ul}; //archetype signature computed from all the components
 		int full_chunks{0};
 		//full chunks allways on the start of the array

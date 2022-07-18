@@ -7,7 +7,7 @@
 #include <algorithm>
 namespace Ecs
 {
-	struct Query {
+	struct IQuery {
 		std::vector<TypeHash> require_comps;
 		std::vector<TypeHash> exclude_comps;
 
@@ -19,20 +19,20 @@ namespace Ecs
 		bool built{ false };
 
 		template<typename... C>
-		Query& with() {
+		IQuery& with() {
 			require_comps.insert(require_comps.end(), { ComponentInfo::build_hash<C>()... });
 
 			return *this;
 		}
 
 		template<typename... C>
-		Query& exclude() {
+		IQuery& exclude() {
 			exclude_comps.insert(exclude_comps.end(), { ComponentInfo::build_hash<C>()... });
 
 			return *this;
 		}
 
-		Query& build() {
+		IQuery& build() {
 			auto compare_hash = [](const TypeHash& A, const TypeHash& B) {
 				return A.name_hash < B.name_hash;
 			};
