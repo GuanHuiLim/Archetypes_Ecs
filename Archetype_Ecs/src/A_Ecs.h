@@ -1069,7 +1069,7 @@ namespace Ecs
 	template<typename S>
 	inline S* IECSWorld::Add_System()
 	{
-		if (system_map.contains(typeid(S).name()) == false)
+		if (system_map.contains(typeid(S).name()))
 			return system_map[typeid(S).name()];
 		//create the system
 		S* system = new S();
